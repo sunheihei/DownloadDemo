@@ -19,6 +19,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.lang.Exception
 
+val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,10 +33,10 @@ class MainActivity : AppCompatActivity() {
     )
 
 
-    private val taskname = listOf("对决传说", "决战，平安京", "明日之后")
+    private val taskname = listOf("对决传说.apk", "决战，平安京.apk", "明日之后.apk")
 
     private var curtask = 0
-    val TAG = "MainActivity"
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 //            if (curtask < 3) {
             val parentFile: File? = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
 
-//                Log.d(TAG, "${parentFile!!.path}")
+//            Log.d(TAG, "${parentFile!!.path}")
 
             var task = DownloadTask.Builder(taskurl[curtask], parentFile!!)
                 .setFilename(taskname[curtask])
@@ -78,7 +79,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         remove_task.setOnClickListener {
+
         }
+
     }
 
 

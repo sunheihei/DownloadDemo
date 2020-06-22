@@ -6,5 +6,4 @@ object DownloadTaskManager {
 
     var DownloadTaskQueue = mutableListOf<DownloadTask>()
 
-
 }
