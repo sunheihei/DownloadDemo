@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.liulishuo.okdownload.DownloadTask
+import com.liulishuo.okdownload.StatusUtil
 import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import com.liulishuo.okdownload.core.listener.DownloadListener1
@@ -18,14 +19,17 @@ class TaskListActivity : AppCompatActivity() {
 
 
         task_restart.setOnClickListener {
-            DownloadTaskManager.DownloadTaskQueue.get(0).enqueue(listener)
+            ListenerManager.manager.attachListener(DownloadTaskManager.DownloadTaskQueue.get(0), listener)
+
+//            DownloadTaskManager.DownloadTaskQueue.get(0).enqueue(listener)
+
         }
     }
 
 
     val listener = object : DownloadListener1() {
         override fun taskStart(task: DownloadTask, model: Listener1Assist.Listener1Model) {
-            Log.d(TAG, "taskStart : ${task.filename}")
+            Log.d(TAG, "taskStart2 : ${task.filename}")
         }
 
         override fun taskEnd(
@@ -34,11 +38,11 @@ class TaskListActivity : AppCompatActivity() {
             realCause: Exception?,
             model: Listener1Assist.Listener1Model
         ) {
-            Log.d(TAG, "taskEnd : ${task.filename}")
+            Log.d(TAG, "taskEnd2 : ${task.filename} cause: ${cause}")
         }
 
         override fun progress(task: DownloadTask, currentOffset: Long, totalLength: Long) {
-            Log.d(TAG, "progress : ${task.filename} ${currentOffset}")
+            Log.d(TAG, "progress2 : ${task.filename} ${currentOffset}")
         }
 
         override fun connected(
@@ -47,11 +51,11 @@ class TaskListActivity : AppCompatActivity() {
             currentOffset: Long,
             totalLength: Long
         ) {
-            Log.d(TAG, "connected : ${task.filename}")
+            Log.d(TAG, "connected2 : ${task.filename}")
         }
 
         override fun retry(task: DownloadTask, cause: ResumeFailedCause) {
-            Log.d(TAG, "retry : ${task.filename}")
+            Log.d(TAG, "retry2 : ${task.filename}")
         }
 
     }

@@ -14,6 +14,9 @@ import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import com.liulishuo.okdownload.core.listener.DownloadListener1
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist
+import com.sunexample.downloaddemo.Const.FIRENAME
+import com.sunexample.downloaddemo.Const.FIREURL
+import com.sunexample.downloaddemo.ListenerManager.manager
 import com.tbruyelle.rxpermissions2.RxPermissions
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -25,23 +28,29 @@ class MainActivity : AppCompatActivity() {
 
 
     private val taskurl = listOf(
-        "https://d-15.winudf.com/b/APK/Y29tLm1vYmlsZS5sZWdlbmRzXzE0ODc1MjkyXzQ3MGY2ZTZh?_fn=TW9iaWxlIExlZ2VuZHMgQmFuZyBCYW5nX3YxLjQuODcuNTI5Ml9hcGtwdXJlLmNvbS5hcGs&_p=Y29tLm1vYmlsZS5sZWdlbmRz&am=KCbjHkuDP5spHiH6OW3keQ&at=1592806142&k=edc3afc8792d5ee1b215d1cec752c33b5ef19c7f"
+        "http://imtt.dd.qq.com/16891/apk/39BE735C53CB0A73A37D841A49C6637C.apk?fsname=com.tencent.mm_7.0.15_1680.apk&csr=db5e"
         ,
-        "https://d-10.winudf.com/b/XAPK/Y29tLm5ldGVhc2UuZzc4bmEuZ2JfMjAzX2FiZjFmMGUw?_fn=T25teW9qaSBBcmVuYV92My43Ni4wX2Fwa3B1cmUuY29tLnhhcGs&_p=Y29tLm5ldGVhc2UuZzc4bmEuZ2I&am=1W2rXg08ETpqL_U0OXdg4A&at=1592806552&k=9b889a6f01e7b8102c43929ad9c55ffe5ef19e18"
+        "http://122.246.10.36/imtt.dd.qq.com/16891/apk/C3C0305826223C72EBDF0BE4F7CDCD62.apk?mkey=5ef18c35b78d2fd2&f=8ea4&fsname=com.netease.cloudmusic_7.1.71_7001071.apk&csr=db5e&cip=183.141.9.39&proto=http"
         ,
-        "https://d-12.winudf.com/b/XAPK/Y29tLm5ldGVhc2UubXJ6aG5hXzE2NF80ZDQxNGM1Ng?_fn=TGlmZUFmdGVyX3YxLjAuMTY0X2Fwa3B1cmUuY29tLnhhcGs&_p=Y29tLm5ldGVhc2UubXJ6aG5h&am=o_--MVdHGE89hy8PRv-iYg&at=1592806637&k=1eade325e7a5c66856f6d349e87502415ef19e6e"
+        "http://dl.hdslb.com/mobile/latest/iBiliPlayer-bilibili140.apk"
+        ,
+        "http://122.246.10.36/imtt.dd.qq.com/16891/apk/7811D2FD0459429C4ED6916EC4879B28.apk?mkey=5ef18de3b78d2fd2&f=0af0&fsname=com.sina.weibo_10.6.2_4487.apk&csr=db5e&cip=183.141.9.39&proto=http"
+        ,
+        "http://dl-cdn.coolapkmarket.com/down/apk_upload/2020/0616/47d9131d79e3c8dd120c3c9abd23896b-0-o_1eatiisd313h51j8c129f1e1ri5h6-uid-408649.apk?_upt=fc1acf9d1592902849"
     )
 
 
-    private val taskname = listOf("对决传说.apk", "决战，平安京.apk", "明日之后.apk")
+    private val taskname = listOf("微信.apk", "网易云音乐.apk", "bilbil.apk", "Sina.apk", "酷安.apk")
 
-    private var curtask = 0
-
+    private var curtask = 4
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        DownloadTaskManager.initManager(this)
+
 
         RxPermissions(this).requestEach(
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -54,23 +63,28 @@ class MainActivity : AppCompatActivity() {
         }
 
         add_task.setOnClickListener {
-//            if (curtask < 3) {
-            val parentFile: File? = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+//            if (curtask < 4) {
+//                val i = Intent(this, TaskService::class.java)
+//                i.putExtra(FIREURL, taskurl[curtask])
+//                i.putExtra(FIRENAME, taskname[curtask])
+//                startService(i)
 
-//            Log.d(TAG, "${parentFile!!.path}")
-
-            var task = DownloadTask.Builder(taskurl[curtask], parentFile!!)
+            var task = DownloadTask.Builder(taskurl[curtask], DownloadTaskManager.parentFile!!)
                 .setFilename(taskname[curtask])
                 // the minimal interval millisecond for callback progress
-                .setMinIntervalMillisCallbackProcess(30)
+                .setMinIntervalMillisCallbackProcess(1000)
                 // do re-download even if the task has already been completed in the past.
                 .setPassIfAlreadyCompleted(false)
                 .build()
 
             DownloadTaskManager.DownloadTaskQueue.add(task)
-            task.enqueue(listener);
 
-//            curtask++
+            manager.attachListener(task, listener);
+            manager.enqueueTaskWithUnifiedListener(task, listener);
+
+//            task.enqueue(listener);
+
+//                curtask++
 //            }
         }
 
@@ -84,7 +98,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
     val listener = object : DownloadListener1() {
         override fun taskStart(task: DownloadTask, model: Listener1Assist.Listener1Model) {
             Log.d(TAG, "taskStart : ${task.filename}")
@@ -96,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             realCause: Exception?,
             model: Listener1Assist.Listener1Model
         ) {
-            Log.d(TAG, "taskEnd : ${task.filename}")
+            Log.d(TAG, "taskEnd : ${task.filename} cause: ${cause}")
         }
 
         override fun progress(task: DownloadTask, currentOffset: Long, totalLength: Long) {
@@ -117,6 +130,5 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-
 
 }
