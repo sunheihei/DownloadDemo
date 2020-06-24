@@ -8,17 +8,12 @@
     tools:context=".TaskListActivity">
 
 
-    <Button
-        android:text="恢复下载"
-        android:id="@+id/task_restart"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/tasklist"
+        android:id="@+id/rec_tasklist"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3" />
 
 
 </LinearLayout>
