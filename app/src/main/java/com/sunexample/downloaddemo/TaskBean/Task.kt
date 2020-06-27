@@ -8,6 +8,6 @@ data class Task(
     val name: String,
     val url: String,
     val Thumbnail: String,
-    var CurrentOffset: Long,
-    var TotalLength: Long
+    var currentOffset: Long,
+    var totalLength: Long
 ) : Parcelable

@@ -1,5 +1,6 @@
 package com.sunexample.downloaddemo.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,9 +8,13 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.liulishuo.okdownload.DownloadTask
+import com.liulishuo.okdownload.StatusUtil
+import com.sunexample.downloaddemo.DownloadTaskManager
 import com.sunexample.downloaddemo.R
+import com.sunexample.downloaddemo.TAG
+import com.sunexample.downloaddemo.TaskBean.Task
 
-class TaskAdapter(var data: List<DownloadTask>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class TaskAdapter(var data: List<Task>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return TaskViewHolder.create(parent)
     }
@@ -20,6 +25,24 @@ class TaskAdapter(var data: List<DownloadTask>) : RecyclerView.Adapter<RecyclerV
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is TaskViewHolder) {
+            holder.task_name.text = data[position].name
+            holder.tv_curoffset.text = data[position].currentOffset.toString()
+            holder.tv_totallength.text = data[position].totalLength.toString()
+
+            var status = StatusUtil.getStatus(DownloadTaskManager.DownloadTaskQueue[position])
+
+            when(status){
+                StatusUtil.Status.PENDING->{holder.task_status.text = "PENDING"}
+                StatusUtil.Status.RUNNING->{holder.task_status.text = "RUNNING"}
+                StatusUtil.Status.COMPLETED->{holder.task_status.text = "COMPLETED"}
+                StatusUtil.Status.IDLE->{holder.task_status.text = "IDLE"}
+                StatusUtil.Status.UNKNOWN->{holder.task_status.text = "UNKNOWN"}
+            }
+            Log.d(TAG,"status：${status}")
+
+            holder.task_root.setOnClickListener {
+
+            }
 
         }
     }

@@ -9,6 +9,7 @@ import com.liulishuo.okdownload.core.cause.EndCause
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import com.liulishuo.okdownload.core.listener.DownloadListener1
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist
+import com.sunexample.downloaddemo.TaskBean.Task
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.Exception
 
@@ -53,7 +54,8 @@ class MainActivity : AppCompatActivity() {
 
         add_task.setOnClickListener {
             if (curtask < 4) {
-                DownloadTaskManager.StartTask(this, taskname[curtask], taskurl[curtask])
+           //添加并启动任务
+                DownloadTaskManager.StartTask(this,Task(taskname[curtask],taskurl[curtask],"",0,0))
                 curtask++
             }
         }

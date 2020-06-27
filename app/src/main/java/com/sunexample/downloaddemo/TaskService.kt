@@ -31,7 +31,6 @@ class TaskService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        DownloadTaskManager.initManager(this)
         Log.d(TAG, "Service Start")
         initService()
     }
@@ -42,7 +41,9 @@ class TaskService : Service() {
             FireUrl = intent.getStringExtra(URL)
             FireName = intent.getStringExtra(NAME)
         }
-        var task = DownloadTask.Builder(FireUrl!!, DownloadTaskManager.parentFile!!)
+
+
+        var task = DownloadTask.Builder(FireUrl!!, DownloadTaskManager.getParentFile())
             .setFilename(FireName)
             .setConnectionCount(1)
             // the minimal interval millisecond for callback progress
@@ -52,7 +53,7 @@ class TaskService : Service() {
             .setWifiRequired(true)
             .build()
 
-        DownloadTaskManager.addTask(task)
+        DownloadTaskManager.addTaskToDownloadQueue(task)
 
         task.enqueue(listener);
 

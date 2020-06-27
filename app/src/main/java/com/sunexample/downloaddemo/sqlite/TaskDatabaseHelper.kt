@@ -10,19 +10,18 @@ class TaskDatabaseHelper(val context: Context, name: String, version: Int) :
     SQLiteOpenHelper(context, name, null, version) {
 
 
-    private val createTask = "create table ${TABLENAME} (" +
-            " id integer primary key autoincrement," +
-            " ${Const.NAME} text," +
-            " ${Const.URL} text )"
-
-//
 //    private val createTask = "create table ${TABLENAME} (" +
 //            " id integer primary key autoincrement," +
 //            " ${Const.NAME} text," +
-//            " ${Const.URL} text," +
-//            " ${Const.THUMBNAIL} text," +
-//            " ${Const.CURRENTOFFSET} Long," +
-//            " ${Const.TOTALLENGTH} Long )"
+//            " ${Const.URL} text )"
+
+    private val createTask = "create table ${TABLENAME} (" +
+            " id integer primary key autoincrement," +
+            " ${Const.NAME} text," +
+            " ${Const.URL} text," +
+            " ${Const.THUMBNAIL} text," +
+            " ${Const.CURRENTOFFSET} Long," +
+            " ${Const.TOTALLENGTH} Long )"
 
     override fun onCreate(db: SQLiteDatabase?) {
         db!!.execSQL(createTask)

@@ -27,7 +27,7 @@ class TaskListActivity : AppCompatActivity() {
     }
 
     private fun initRecycle() {
-        adapter = TaskAdapter(DownloadTaskManager.DownloadTaskQueue)
+        adapter = TaskAdapter(DownloadTaskManager.CusTomTaskQueue)
         rec_tasklist.adapter = adapter
     }
 
