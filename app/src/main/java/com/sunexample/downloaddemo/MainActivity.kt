@@ -26,10 +26,17 @@ class MainActivity : AppCompatActivity() {
         "http://dl.hdslb.com/mobile/latest/iBiliPlayer-bilibili140.apk"
         ,
         "http://122.246.10.36/imtt.dd.qq.com/16891/apk/7811D2FD0459429C4ED6916EC4879B28.apk?mkey=5ef18de3b78d2fd2&f=0af0&fsname=com.sina.weibo_10.6.2_4487.apk&csr=db5e&cip=183.141.9.39&proto=http"
+        ,
+        "https://dl-android.keepcdn.com/release/apk/keep_adhub_cpa__jinbang_05_6.43.0_71592a0f.apk"
+        ,
+        "http://imtt.dd.qq.com/16891/apk/EB8582F240BC4973BD34903B951F1740.apk?fsname=com.baidu.netdisk_10.1.31_1199.apk&csr=db5e"
+        ,
+        "http://m.down.sandai.net/MobileThunder/Android_6.23.2.6980/thunder-6.23.2.6980-stable-release-jiagu-fufei91.apk"
     )
 
 
-    private val taskname = listOf("微信.apk", "网易云音乐.apk", "bilbil.apk", "Sina.apk")
+    private val taskname =
+        listOf("微信.apk", "网易云音乐.apk", "bilbil.apk", "Sina.apk", "keep.apk", "百度网盘.apk", "迅雷.apk")
 
     private var curtask = 0
 
@@ -53,9 +60,12 @@ class MainActivity : AppCompatActivity() {
 
 
         add_task.setOnClickListener {
-            if (curtask < 4) {
-           //添加并启动任务
-                DownloadTaskManager.StartTask(this,Task(taskname[curtask],taskurl[curtask],"",0,0))
+            if (curtask < 7) {
+                //添加并启动任务
+                DownloadTaskManager.StartNewTask(
+                    this,
+                    Task(taskname[curtask], taskurl[curtask], "", 0, 0)
+                )
                 curtask++
             }
         }
@@ -64,12 +74,12 @@ class MainActivity : AppCompatActivity() {
             stopService(Intent(this, TaskService::class.java))
         }
 
-        pause_task.setOnClickListener {
-
+        pause_all_task.setOnClickListener {
+            startService(Intent(this, TaskService::class.java).setAction(Const.TAG_STOP_ALL_TASK))
         }
 
-        remove_task.setOnClickListener {
-
+        start_all_task.setOnClickListener {
+            startService(Intent(this, TaskService::class.java).setAction(Const.TAG_START_ALL_TASK))
         }
 
     }

@@ -12,6 +12,7 @@ import com.sunexample.downloaddemo.Const.DBNAME
 import com.sunexample.downloaddemo.Const.NAME
 import com.sunexample.downloaddemo.Const.URL
 import com.sunexample.downloaddemo.Const.TABLENAME
+import com.sunexample.downloaddemo.Const.TAG_TASK
 import com.sunexample.downloaddemo.Const.THUMBNAIL
 import com.sunexample.downloaddemo.Const.TOTALLENGTH
 import com.sunexample.downloaddemo.TaskBean.Task
@@ -39,20 +40,36 @@ object DownloadTaskManager {
     }
 
 
-    fun StartTask(context: Context,task: Task) {
+    fun StartNewTask(context: Context, task: Task) {
 
         DownloadTaskQueue.forEach {
-            if (it.filename == task.name && it.url == task.url){
+            if (it.filename == task.name && it.url == task.url) {
+                Log.d(TAG, "The file is already in the download queue")
                 return
             }
         }
 
+        if (File(getParentFile(), task.name).exists()) {
+            Log.d(TAG, "The file already exists")
+            return
+        }
+
         addTaskToDownloadQueue(task)
 
-        val i = Intent(context, TaskService::class.java)
-        i.putExtra(NAME, task.name)
-        i.putExtra(URL, task.url)
-        context.startService(i)
+        context.startService(
+            Intent(context, TaskService::class.java).setAction(Const.TAG_START_NEW_TASK)
+                .putExtra(TAG_TASK, task)
+        )
+    }
+
+
+    /**
+     * 当某个任务下载完成时，或者删除某个任务时
+     */
+    fun SynchronizeTask(position: Int) {
+        deleteTaskFromDateBase(CusTomTaskQueue[position])
+        DownloadTaskQueue.removeAt(position)
+        CusTomTaskQueue.removeAt(position)
     }
 
 
@@ -66,16 +83,16 @@ object DownloadTaskManager {
     }
 
 
-     //新添加一条任务，分别是下载任务列表
-     fun addTaskToDownloadQueue(task: Any) {
-         if (task is Task){
-             CusTomTaskQueue.add(task)
-             addTaskToDataBase(task)
-         }else if(task is DownloadTask){
-             DownloadTaskQueue.add(task)
-         }
-         Log.d(TAG, " DownloadTaskQueue.size : ${DownloadTaskQueue.size}")
-         Log.d(TAG, " CusTomTaskQueue.size : ${CusTomTaskQueue.size}")
+    //新添加一条任务，分别是下载任务列表
+    fun addTaskToDownloadQueue(task: Any) {
+        if (task is Task) {
+            CusTomTaskQueue.add(task)
+            addTaskToDataBase(task)
+        } else if (task is DownloadTask) {
+            DownloadTaskQueue.add(task)
+        }
+        Log.d(TAG, " DownloadTaskQueue.size : ${DownloadTaskQueue.size}")
+        Log.d(TAG, " CusTomTaskQueue.size : ${CusTomTaskQueue.size}")
     }
 
 
@@ -86,9 +103,9 @@ object DownloadTaskManager {
         val value = ContentValues().apply {
             put(Const.NAME, task.name)
             put(Const.URL, task.url)
-            put(Const.THUMBNAIL,task.url)
-            put(Const.CURRENTOFFSET,task.currentOffset)
-            put(Const.TOTALLENGTH,task.totalLength)
+            put(Const.THUMBNAIL, task.url)
+            put(Const.CURRENTOFFSET, task.currentOffset)
+            put(Const.TOTALLENGTH, task.totalLength)
         }
         db!!.insert(Const.TABLENAME, null, value)
     }
@@ -96,21 +113,21 @@ object DownloadTaskManager {
     /**
      *删除一条任务
      */
-    private fun deleteTaskFromDateBase(task: DownloadTask) {
-        db!!.delete(Const.TABLENAME, "$NAME  = ", arrayOf(task.filename))
+    private fun deleteTaskFromDateBase(task: Task) {
+        db!!.delete(Const.TABLENAME, "$NAME  =  ?", arrayOf(task.name))
     }
 
 
     /**
      * 从数据库查找全部任务，分别放进任务队列
      */
-   private fun getDataFromDatabase(){
+    private fun getDataFromDatabase() {
         val cursor = db?.query(TABLENAME, null, null, null, null, null, null)
         if (cursor!!.moveToFirst()) {
             do {
                 val name = cursor.getString(cursor.getColumnIndex(NAME))
                 val url = cursor.getString(cursor.getColumnIndex(URL))
-                val thombnail= cursor.getString(cursor.getColumnIndex(THUMBNAIL))
+                val thombnail = cursor.getString(cursor.getColumnIndex(THUMBNAIL))
                 val currentoffset = cursor.getLong(cursor.getColumnIndex(CURRENTOFFSET))
                 val totalLength = cursor.getLong(cursor.getColumnIndex(TOTALLENGTH))
 
@@ -122,12 +139,14 @@ object DownloadTaskManager {
 
                 val task = DownloadTask.Builder(url, parentFile!!)
                     .setFilename(name)
-                    .setMinIntervalMillisCallbackProcess(30)
+                    .setConnectionCount(1)
+                    .setMinIntervalMillisCallbackProcess(1000)
                     .setPassIfAlreadyCompleted(false)
                     .build()
+                DownloadTaskQueue.clear()
                 DownloadTaskQueue.add(task)
 
-                CusTomTaskQueue.add(Task(name,url,thombnail,currentoffset,totalLength))
+                CusTomTaskQueue.add(Task(name, url, thombnail, currentoffset, totalLength))
 
 
             } while (cursor.moveToNext())
@@ -137,6 +156,6 @@ object DownloadTaskManager {
     }
 
 
-    fun getParentFile():File = parentFile!!
+    fun getParentFile(): File = parentFile!!
 
 }

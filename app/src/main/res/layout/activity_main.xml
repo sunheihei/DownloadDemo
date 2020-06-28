@@ -14,10 +14,10 @@
         android:text="打开任务下载列表" />
 
     <Button
-        android:text="停止下载"
         android:id="@+id/stop_download"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="停止下载" />
 
 
     <LinearLayout
@@ -34,19 +34,19 @@
 
 
         <Button
-            android:id="@+id/pause_task"
+            android:id="@+id/pause_all_task"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="暂停任务" />
+            android:text="暂停全部任务" />
 
 
         <Button
-            android:id="@+id/remove_task"
+            android:id="@+id/start_all_task"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="取消任务" />
+            android:text="启动全部任务" />
 
 
     </LinearLayout>

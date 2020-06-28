@@ -1,5 +1,7 @@
 package com.sunexample.downloaddemo.adapter
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -9,12 +11,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.StatusUtil
-import com.sunexample.downloaddemo.DownloadTaskManager
-import com.sunexample.downloaddemo.R
-import com.sunexample.downloaddemo.TAG
+import com.sunexample.downloaddemo.*
 import com.sunexample.downloaddemo.TaskBean.Task
 
-class TaskAdapter(var data: List<Task>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class TaskAdapter(val mcontext: Context, var data: List<Task>) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return TaskViewHolder.create(parent)
     }
@@ -26,22 +27,49 @@ class TaskAdapter(var data: List<Task>) : RecyclerView.Adapter<RecyclerView.View
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is TaskViewHolder) {
             holder.task_name.text = data[position].name
-            holder.tv_curoffset.text = data[position].currentOffset.toString()
-            holder.tv_totallength.text = data[position].totalLength.toString()
+            holder.tv_curoffset.text = byteToString(data[position].currentOffset)
+            holder.tv_totallength.text = byteToString(data[position].totalLength)
 
             var status = StatusUtil.getStatus(DownloadTaskManager.DownloadTaskQueue[position])
 
-            when(status){
-                StatusUtil.Status.PENDING->{holder.task_status.text = "PENDING"}
-                StatusUtil.Status.RUNNING->{holder.task_status.text = "RUNNING"}
-                StatusUtil.Status.COMPLETED->{holder.task_status.text = "COMPLETED"}
-                StatusUtil.Status.IDLE->{holder.task_status.text = "IDLE"}
-                StatusUtil.Status.UNKNOWN->{holder.task_status.text = "UNKNOWN"}
+            when (status) {
+                StatusUtil.Status.PENDING -> {
+                    holder.task_status.text = "PENDING"
+                }
+                StatusUtil.Status.RUNNING -> {
+                    holder.task_status.text = "RUNNING"
+                }
+                StatusUtil.Status.COMPLETED -> {
+                    holder.task_status.text = "COMPLETED"
+                }
+                StatusUtil.Status.IDLE -> {
+                    holder.task_status.text = "IDLE"
+                }
+                StatusUtil.Status.UNKNOWN -> {
+                    holder.task_status.text = "UNKNOWN"
+                }
             }
-            Log.d(TAG,"status：${status}")
+            Log.d(TAG, "status：${status}")
 
             holder.task_root.setOnClickListener {
-
+                if (status == StatusUtil.Status.IDLE || status == StatusUtil.Status.UNKNOWN) {
+                    mcontext.startService(
+                        Intent(
+                            mcontext,
+                            TaskService::class.java
+                        ).setAction(Const.TAG_RESTART_TASK)
+                            .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
+                    )
+                } else if (status == StatusUtil.Status.RUNNING || status == StatusUtil.Status.PENDING) {
+                    mcontext.startService(
+                        Intent(
+                            mcontext,
+                            TaskService::class.java
+                        ).setAction(Const.TAG_STOP_TASK)
+                            .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
+                    )
+                }
+                Log.d(TAG, "click position ${position}")
             }
 
         }
