@@ -1,9 +1,6 @@
 package com.sunexample.downloaddemo
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -17,6 +14,7 @@ import com.liulishuo.okdownload.core.cause.ResumeFailedCause
 import com.liulishuo.okdownload.core.listener.DownloadListener1
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist
 import com.sunexample.downloaddemo.Const.TAG_TASK
+import com.sunexample.downloaddemo.Const.TASK_TAG_KEY
 import com.sunexample.downloaddemo.TaskBean.Task
 import com.sunexample.downloaddemo.eventbus.TaskEndEvent
 import com.sunexample.downloaddemo.eventbus.TaskProgressEvent
@@ -30,6 +28,7 @@ class TaskService : Service() {
     private var notification: Notification? = null
     private var manager: NotificationManager? = null
 
+    private var downloading_task = 0
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Service Start")
@@ -53,6 +52,7 @@ class TaskService : Service() {
                             .setPassIfAlreadyCompleted(false)
                             .setWifiRequired(true)
                             .build()
+                    task.addTag(TASK_TAG_KEY, it.tag)
                     //添加一条新任务到下载任务列表
                     DownloadTaskManager.addTaskToDownloadQueue(task)
                     task.enqueue(listener);
@@ -62,7 +62,7 @@ class TaskService : Service() {
             if (it.action == Const.TAG_RESTART_TASK) {
                 var mTask: Task = it.getParcelableExtra(TAG_TASK)
                 DownloadTaskManager.DownloadTaskQueue.forEach {
-                    if (it.filename == mTask.name) {
+                    if (it.getTag(Const.TASK_TAG_KEY).equals(mTask.tag)) {
                         it.enqueue(listener)
                     }
                 }
@@ -81,7 +81,7 @@ class TaskService : Service() {
             if (it.action == Const.TAG_STOP_TASK) {
                 var mTask: Task = it.getParcelableExtra(TAG_TASK)
                 DownloadTaskManager.DownloadTaskQueue.forEach {
-                    if (it.filename == mTask.name) {
+                    if (it.getTag(Const.TASK_TAG_KEY) == mTask.tag) {
                         it.cancel()
                     }
                 }
@@ -110,10 +110,20 @@ class TaskService : Service() {
             )
             manager!!.createNotificationChannel(channel)
         }
+
+
+        val intent = Intent(this, TaskListActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        val pendingIntent =
+            PendingIntent.getActivity(applicationContext, 0, intent, 0)
+
         notification = NotificationCompat.Builder(this, "downloading")
             .setContentTitle("DownloadDemo")
-            .setContentText("Downloading...")
+//            .setContentText("There are currently ${downloading_task} tasks downloading...")
+            .setContentText("downloading...")
             .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentIntent(pendingIntent)
             .build()
         startForeground(FOREGROUND_SERVICE, notification)
     }
@@ -134,23 +144,28 @@ class TaskService : Service() {
             model: Listener1Assist.Listener1Model
         ) {
             Log.d(TAG, "taskEnd : ${task.filename} cause: ${cause}")
+
+            var position = 0
+            DownloadTaskManager.DownloadTaskQueue.forEach {
+//               Log.d(TAG, "it.getTag(TASK_TAG_KEY) :" + it.getTag(TASK_TAG_KEY))
+                if (it.getTag(TASK_TAG_KEY).equals(task.getTag(TASK_TAG_KEY))) {
+                    position = DownloadTaskManager.DownloadTaskQueue.indexOf(it)
+                }
+            }
+
             when (cause) {
                 EndCause.COMPLETED -> {
                     //完成任务,同步数据（删除完成的任务）
-                    var position = 0
-                    DownloadTaskManager.DownloadTaskQueue.forEach {
-                        if (it.filename.equals(task.filename)) {
-                            position = DownloadTaskManager.DownloadTaskQueue.indexOf(it)
-                        }
-                    }
                     DownloadTaskManager.SynchronizeTask(position)
                 }
-//                EndCause.CANCELED -> {
-//                    //取消
-//                }
-//                EndCause.ERROR -> {
-//                    //网络中断
-//                }
+                EndCause.CANCELED -> {
+                    //取消
+                    DownloadTaskManager.SynchronizeProgrss(position)
+                }
+                EndCause.ERROR -> {
+                    //网络中断
+                    DownloadTaskManager.SynchronizeProgrss(position)
+                }
                 EndCause.SAME_TASK_BUSY -> {
                     //重复任务或者到达同时下载任务上限
                 }
@@ -161,6 +176,7 @@ class TaskService : Service() {
                 EventBus.getDefault().post(TaskEndEvent(task, cause, realCause))
             }
 
+
             //当任务列表中没有的时候就停止后台任务
             if (DownloadTaskManager.DownloadTaskQueue.size == 0) {
                 stopSelf()
@@ -168,7 +184,7 @@ class TaskService : Service() {
         }
 
         override fun progress(task: DownloadTask, currentOffset: Long, totalLength: Long) {
-//            Log.d(TAG, "progress : ${task.filename} ${currentOffset}")
+//          Log.d(TAG, "progress : ${task.filename} ${currentOffset}")
             if (isForeground(this@TaskService, "TaskListActivity")) {
                 EventBus.getDefault().post(
                     TaskProgressEvent(
@@ -186,7 +202,7 @@ class TaskService : Service() {
             currentOffset: Long,
             totalLength: Long
         ) {
-            Log.d(TAG, "connected : ${task.filename}")
+            Log.d(TAG, "connected : ${task.filename}  downloading_task: ${downloading_task}")
         }
 
         override fun retry(task: DownloadTask, cause: ResumeFailedCause) {

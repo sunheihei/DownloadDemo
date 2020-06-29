@@ -19,7 +19,9 @@ class TaskDatabaseHelper(val context: Context, name: String, version: Int) :
             " id integer primary key autoincrement," +
             " ${Const.NAME} text," +
             " ${Const.URL} text," +
+            " ${Const.TASKTAG} text," +
             " ${Const.THUMBNAIL} text," +
+            " ${Const.ISCOMPLETED} Int," +
             " ${Const.CURRENTOFFSET} Long," +
             " ${Const.TOTALLENGTH} Long )"
 

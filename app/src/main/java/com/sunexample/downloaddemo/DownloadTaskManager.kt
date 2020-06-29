@@ -9,10 +9,13 @@ import android.util.Log
 import com.liulishuo.okdownload.DownloadTask
 import com.sunexample.downloaddemo.Const.CURRENTOFFSET
 import com.sunexample.downloaddemo.Const.DBNAME
+import com.sunexample.downloaddemo.Const.ISCOMPLETED
 import com.sunexample.downloaddemo.Const.NAME
 import com.sunexample.downloaddemo.Const.URL
 import com.sunexample.downloaddemo.Const.TABLENAME
 import com.sunexample.downloaddemo.Const.TAG_TASK
+import com.sunexample.downloaddemo.Const.TASKTAG
+import com.sunexample.downloaddemo.Const.TASK_TAG_KEY
 import com.sunexample.downloaddemo.Const.THUMBNAIL
 import com.sunexample.downloaddemo.Const.TOTALLENGTH
 import com.sunexample.downloaddemo.TaskBean.Task
@@ -31,8 +34,11 @@ object DownloadTaskManager {
     //自己封装的下载任务队列，用于列表展示
     var CusTomTaskQueue = mutableListOf<Task>()
 
+    //已经下载完成的任务队列
+    var DownloadedTaskQueue = mutableListOf<Task>()
+
     fun initManager(context: Context) {
-        //确定路劲
+        //确定路径
         parentFile = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         val dbhelper = TaskDatabaseHelper(context, DBNAME, 1)
         db = dbhelper.writableDatabase
@@ -40,8 +46,8 @@ object DownloadTaskManager {
     }
 
 
+    //添加一个新任务
     fun StartNewTask(context: Context, task: Task) {
-
         DownloadTaskQueue.forEach {
             if (it.filename == task.name && it.url == task.url) {
                 Log.d(TAG, "The file is already in the download queue")
@@ -64,10 +70,34 @@ object DownloadTaskManager {
 
 
     /**
-     * 当某个任务下载完成时，或者删除某个任务时
+     * 当某个任务下载完成时，同步三个队列数据，并更新数据库状态
      */
     fun SynchronizeTask(position: Int) {
+        //更新该任务状态
+        updataTaskStatus(CusTomTaskQueue[position])//更新是否已经下载完成
+        SynchronizeProgrss(position)//下载完的任务将进度更新到表中
+        DownloadedTaskQueue.add(CusTomTaskQueue[position])
+        DownloadTaskQueue.removeAt(position)
+        CusTomTaskQueue.removeAt(position)
+    }
+
+    /**
+     * 更新数据库任务进度
+     */
+    fun SynchronizeProgrss(position: Int) {
+        updataProgress(CusTomTaskQueue[position])
+    }
+
+
+    /**
+     * 删除某个任务，同步列表，并且删除文件和数据库信息
+     */
+    fun SynchizeWhenDelete(position: Int) {
         deleteTaskFromDateBase(CusTomTaskQueue[position])
+        DownloadTaskQueue[position].cancel()
+        if (DownloadTaskQueue[position].file!!.exists()) {
+            DownloadTaskQueue[position].file!!.delete()
+        }
         DownloadTaskQueue.removeAt(position)
         CusTomTaskQueue.removeAt(position)
     }
@@ -77,9 +107,13 @@ object DownloadTaskManager {
      * //启动时从数据库中取出上一次没下载完的所有任务
      */
     private fun initTaskQueueWhenLaunch() {
+        DownloadedTaskQueue.clear()
+        DownloadTaskQueue.clear()
+        CusTomTaskQueue.clear()
         getDataFromDatabase()
         Log.d(TAG, " DownloadTaskQueue.size : ${DownloadTaskQueue.size}")
         Log.d(TAG, " CusTomTaskQueue.size : ${CusTomTaskQueue.size}")
+        Log.d(TAG, " DownloadedTaskQueue.size : ${DownloadedTaskQueue.size}")
     }
 
 
@@ -101,20 +135,43 @@ object DownloadTaskManager {
      */
     private fun addTaskToDataBase(task: Task) {
         val value = ContentValues().apply {
-            put(Const.NAME, task.name)
-            put(Const.URL, task.url)
-            put(Const.THUMBNAIL, task.url)
-            put(Const.CURRENTOFFSET, task.currentOffset)
-            put(Const.TOTALLENGTH, task.totalLength)
+            put(NAME, task.name)
+            put(URL, task.url)
+            put(TASKTAG, task.tag)
+            put(ISCOMPLETED, task.iscompleted)
+            put(THUMBNAIL, task.url)
+            put(CURRENTOFFSET, task.currentOffset)
+            put(TOTALLENGTH, task.totalLength)
         }
-        db!!.insert(Const.TABLENAME, null, value)
+        db!!.insert(TABLENAME, null, value)
     }
 
     /**
      *删除一条任务
      */
     private fun deleteTaskFromDateBase(task: Task) {
-        db!!.delete(Const.TABLENAME, "$NAME  =  ?", arrayOf(task.name))
+        db!!.delete(TABLENAME, "$TASKTAG  =  ?", arrayOf(task.tag))
+    }
+
+    /*
+     * 更新任务下载状态
+     */
+    private fun updataTaskStatus(task: Task) {
+        val value = ContentValues().apply {
+            put(ISCOMPLETED, 1)
+        }
+        db!!.update(TABLENAME, value, "$TASKTAG  =  ?", arrayOf(task.tag))
+    }
+
+    /**
+     * 暂停任务时更新任务进度
+     */
+    private fun updataProgress(task: Task) {
+        val value = ContentValues().apply {
+            put(CURRENTOFFSET, task.currentOffset)
+            put(TOTALLENGTH, task.totalLength)
+        }
+        db!!.update(TABLENAME, value, "$TASKTAG  =  ?", arrayOf(task.tag))
     }
 
 
@@ -127,26 +184,53 @@ object DownloadTaskManager {
             do {
                 val name = cursor.getString(cursor.getColumnIndex(NAME))
                 val url = cursor.getString(cursor.getColumnIndex(URL))
+                val task_tag = cursor.getString(cursor.getColumnIndex(TASKTAG))
+                val iscompleted = cursor.getInt(cursor.getColumnIndex(ISCOMPLETED))
                 val thombnail = cursor.getString(cursor.getColumnIndex(THUMBNAIL))
                 val currentoffset = cursor.getLong(cursor.getColumnIndex(CURRENTOFFSET))
                 val totalLength = cursor.getLong(cursor.getColumnIndex(TOTALLENGTH))
 
+
 //                Log.d(TAG, " name : ${name}")
 //                Log.d(TAG, " fireurl :${url}")
+//                Log.d(TAG, " task_tag :${task_tag}")
 //                Log.d(TAG, " thombnail :${thombnail}")
+//                Log.d(TAG, " iscompleted :${iscompleted}")
 //                Log.d(TAG, " currentoffset :${currentoffset}")
 //                Log.d(TAG, " totalLength :${totalLength}")
 
-                val task = DownloadTask.Builder(url, parentFile!!)
-                    .setFilename(name)
-                    .setConnectionCount(1)
-                    .setMinIntervalMillisCallbackProcess(1000)
-                    .setPassIfAlreadyCompleted(false)
-                    .build()
-                DownloadTaskQueue.clear()
-                DownloadTaskQueue.add(task)
+                val task = Task(
+                    name,
+                    url,
+                    thombnail,
+                    iscompleted,
+                    task_tag,
+                    currentoffset,
+                    totalLength
+                )
 
-                CusTomTaskQueue.add(Task(name, url, thombnail, currentoffset, totalLength))
+                if (iscompleted == 1) {
+                    //已经完成
+                    if (File(getParentFile(), name).exists()) {
+                        //且该文件存在
+                        DownloadedTaskQueue.add(task)
+                    } else {
+                        //数据库下载完成，但是文件不存在，那么要删除该数据
+                        deleteTaskFromDateBase(task)
+                    }
+                } else {
+                    val Donwloadtask = DownloadTask.Builder(url, getParentFile())
+                        .setFilename(name)
+                        .setConnectionCount(1)
+                        .setMinIntervalMillisCallbackProcess(1000)
+                        .setPassIfAlreadyCompleted(false)
+                        .build()
+                    Donwloadtask.addTag(TASK_TAG_KEY, task_tag)
+
+                    DownloadTaskQueue.add(Donwloadtask)
+
+                    CusTomTaskQueue.add(task)
+                }
 
 
             } while (cursor.moveToNext())

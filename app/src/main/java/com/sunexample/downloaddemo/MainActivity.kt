@@ -64,7 +64,11 @@ class MainActivity : AppCompatActivity() {
                 //添加并启动任务
                 DownloadTaskManager.StartNewTask(
                     this,
-                    Task(taskname[curtask], taskurl[curtask], "", 0, 0)
+                    Task(
+                        taskname[curtask],
+                        taskurl[curtask],
+                        ""
+                    )
                 )
                 curtask++
             }
@@ -83,38 +87,4 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-
-    val listener = object : DownloadListener1() {
-        override fun taskStart(task: DownloadTask, model: Listener1Assist.Listener1Model) {
-            Log.d(TAG, "taskStart : ${task.filename}")
-        }
-
-        override fun taskEnd(
-            task: DownloadTask,
-            cause: EndCause,
-            realCause: Exception?,
-            model: Listener1Assist.Listener1Model
-        ) {
-            Log.d(TAG, "taskEnd : ${task.filename} cause: ${cause}")
-        }
-
-        override fun progress(task: DownloadTask, currentOffset: Long, totalLength: Long) {
-            Log.d(TAG, "progress : ${task.filename} ${currentOffset}")
-        }
-
-        override fun connected(
-            task: DownloadTask,
-            blockCount: Int,
-            currentOffset: Long,
-            totalLength: Long
-        ) {
-            Log.d(TAG, "connected : ${task.filename}")
-        }
-
-        override fun retry(task: DownloadTask, cause: ResumeFailedCause) {
-            Log.d(TAG, "retry : ${task.filename}")
-        }
-
-    }
-
 }

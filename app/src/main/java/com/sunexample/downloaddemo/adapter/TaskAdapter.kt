@@ -1,18 +1,23 @@
 package com.sunexample.downloaddemo.adapter
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.liulishuo.okdownload.DownloadTask
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.liulishuo.okdownload.StatusUtil
 import com.sunexample.downloaddemo.*
 import com.sunexample.downloaddemo.TaskBean.Task
+import org.w3c.dom.Text
+
 
 class TaskAdapter(val mcontext: Context, var data: List<Task>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -69,8 +74,28 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
                             .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
                     )
                 }
-                Log.d(TAG, "click position ${position}")
+
             }
+
+            holder.btn_more.setOnClickListener {
+                if (mcontext is Activity) {
+                    val dialog = BottomSheetDialog(mcontext)
+                    val view: View =
+                        mcontext.getLayoutInflater().inflate(R.layout.dialog_bottom_sheet, null)
+
+                    val delete = view.findViewById(R.id.delete) as TextView
+
+                    delete.setOnClickListener {
+                        DownloadTaskManager.SynchizeWhenDelete(position)
+                        dialog.dismiss()
+                        notifyDataSetChanged()
+                    }
+
+                    dialog.setContentView(view)
+                    dialog.show()
+                }
+            }
+
 
         }
     }
@@ -83,6 +108,7 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
         val task_root: RelativeLayout = itemview.findViewById(R.id.task_root)
         val tv_curoffset: TextView = itemview.findViewById(R.id.tv_curoffset)
         val tv_totallength: TextView = itemview.findViewById(R.id.tv_totallength)
+        val btn_more: ImageView = itemview.findViewById(R.id.btn_more)
 
         companion object {
             fun create(parent: ViewGroup) =

@@ -79,7 +79,7 @@ class TaskListActivity : AppCompatActivity() {
 
         var position = 0
         DownloadTaskManager.CusTomTaskQueue.forEach {
-            if (it.name.equals(taskend.task.filename)) {
+            if (it.tag.equals(taskend.task.getTag(Const.TASK_TAG_KEY))) {
                 position = DownloadTaskManager.CusTomTaskQueue.indexOf(it)
             }
         }
