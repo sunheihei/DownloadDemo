@@ -10,13 +10,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.liulishuo.okdownload.StatusUtil
 import com.sunexample.downloaddemo.*
 import com.sunexample.downloaddemo.TaskBean.Task
-import org.w3c.dom.Text
 
 
 class TaskAdapter(val mcontext: Context, var data: List<Task>) :
@@ -58,6 +56,7 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
 
             holder.task_root.setOnClickListener {
                 if (status == StatusUtil.Status.IDLE || status == StatusUtil.Status.UNKNOWN) {
+                    holder.task_status.text = "RUNNING"
                     mcontext.startService(
                         Intent(
                             mcontext,
@@ -66,6 +65,7 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
                             .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
                     )
                 } else if (status == StatusUtil.Status.RUNNING || status == StatusUtil.Status.PENDING) {
+                    holder.task_status.text = "IDLE"
                     mcontext.startService(
                         Intent(
                             mcontext,
@@ -74,7 +74,6 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
                             .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
                     )
                 }
-
             }
 
             holder.btn_more.setOnClickListener {

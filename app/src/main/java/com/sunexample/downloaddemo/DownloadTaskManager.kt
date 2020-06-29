@@ -85,7 +85,8 @@ object DownloadTaskManager {
      * 更新数据库任务进度
      */
     fun SynchronizeProgrss(position: Int) {
-        updataProgress(CusTomTaskQueue[position])
+        if (CusTomTaskQueue.size != 0)
+            updataProgress(CusTomTaskQueue[position])
     }
 
 
@@ -93,8 +94,8 @@ object DownloadTaskManager {
      * 删除某个任务，同步列表，并且删除文件和数据库信息
      */
     fun SynchizeWhenDelete(position: Int) {
-        deleteTaskFromDateBase(CusTomTaskQueue[position])
         DownloadTaskQueue[position].cancel()
+        deleteTaskFromDateBase(CusTomTaskQueue[position])
         if (DownloadTaskQueue[position].file!!.exists()) {
             DownloadTaskQueue[position].file!!.delete()
         }
@@ -125,8 +126,8 @@ object DownloadTaskManager {
         } else if (task is DownloadTask) {
             DownloadTaskQueue.add(task)
         }
-        Log.d(TAG, " DownloadTaskQueue.size : ${DownloadTaskQueue.size}")
-        Log.d(TAG, " CusTomTaskQueue.size : ${CusTomTaskQueue.size}")
+//        Log.d(TAG, " DownloadTaskQueue.size : ${DownloadTaskQueue.size}")
+//        Log.d(TAG, " CusTomTaskQueue.size : ${CusTomTaskQueue.size}")
     }
 
 
