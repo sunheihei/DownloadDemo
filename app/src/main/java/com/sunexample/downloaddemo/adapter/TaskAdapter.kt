@@ -33,7 +33,7 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
             holder.tv_curoffset.text = byteToString(data[position].currentOffset)
             holder.tv_totallength.text = byteToString(data[position].totalLength)
 
-            var status = StatusUtil.getStatus(DownloadTaskManager.DownloadTaskQueue[position])
+            val status = StatusUtil.getStatus(DownloadTaskManager.DownloadTaskQueue[position])
 
             when (status) {
                 StatusUtil.Status.PENDING -> {
@@ -56,7 +56,6 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
 
             holder.task_root.setOnClickListener {
                 if (status == StatusUtil.Status.IDLE || status == StatusUtil.Status.UNKNOWN) {
-                    holder.task_status.text = "RUNNING"
                     mcontext.startService(
                         Intent(
                             mcontext,
@@ -65,7 +64,6 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
                             .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
                     )
                 } else if (status == StatusUtil.Status.RUNNING || status == StatusUtil.Status.PENDING) {
-                    holder.task_status.text = "IDLE"
                     mcontext.startService(
                         Intent(
                             mcontext,
@@ -94,8 +92,6 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
                     dialog.show()
                 }
             }
-
-
         }
     }
 
@@ -104,6 +100,7 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
 
         val task_name: TextView = itemView.findViewById(R.id.task_name)
         val task_status: TextView = itemView.findViewById(R.id.task_status)
+        val btn_start_pause: ImageView = itemView.findViewById(R.id.btn_start_pause)
         val task_root: RelativeLayout = itemview.findViewById(R.id.task_root)
         val tv_curoffset: TextView = itemview.findViewById(R.id.tv_curoffset)
         val tv_totallength: TextView = itemview.findViewById(R.id.tv_totallength)
