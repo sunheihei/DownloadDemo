@@ -30,8 +30,8 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is TaskViewHolder) {
             holder.task_name.text = data[position].name
-            holder.tv_curoffset.text = byteToString(data[position].currentOffset)
-            holder.tv_totallength.text = byteToString(data[position].totalLength)
+            holder.tv_curoffset.text = formatSize(mcontext, data[position].currentOffset.toString())
+            holder.tv_totallength.text = formatSize(mcontext, data[position].totalLength.toString())
 
             val status = StatusUtil.getStatus(DownloadTaskManager.DownloadTaskQueue[position])
 

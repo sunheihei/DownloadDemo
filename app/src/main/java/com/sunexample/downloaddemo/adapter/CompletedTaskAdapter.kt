@@ -1,6 +1,7 @@
 package com.sunexample.downloaddemo.adapter
 
 import android.app.Activity
+import android.app.DownloadManager
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.sunexample.downloaddemo.*
 import com.sunexample.downloaddemo.TaskBean.Task
+import java.io.File
 
 
 class CompletedTaskAdapter(val mcontext: Context, var data: List<Task>) :
@@ -27,6 +29,15 @@ class CompletedTaskAdapter(val mcontext: Context, var data: List<Task>) :
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is CompletedTaskViewHolder) {
             holder.task_name.text = data[position].name
+            holder.task_size.text = formatSize(
+                mcontext,
+                getFileSize(
+                    File(
+                        DownloadTaskManager.getParentFile(),
+                        data[position].name
+                    )
+                ).toString()
+            )
 
             holder.task_root.setOnClickListener {
 
@@ -58,6 +69,7 @@ class CompletedTaskAdapter(val mcontext: Context, var data: List<Task>) :
 class CompletedTaskViewHolder(itemview: View) : RecyclerView.ViewHolder(itemview) {
 
     val task_name: TextView = itemView.findViewById(R.id.task_name)
+    val task_size: TextView = itemview.findViewById(R.id.task_size)
     val task_root: RelativeLayout = itemview.findViewById(R.id.task_root)
     val btn_more: ImageView = itemview.findViewById(R.id.btn_more)
 
