@@ -42,7 +42,7 @@ class TaskService : Service() {
             if (it.action == Const.TAG_START_NEW_TASK) {
                 var mTask: Task = it.getParcelableExtra(TAG_TASK)
                 mTask?.let {
-                    var task =
+                    val task =
                         DownloadTask.Builder(it.url, DownloadTaskManager.getParentFile())
                             .setFilename(it.name)
                             .setConnectionCount(1)

@@ -91,7 +91,7 @@ object DownloadTaskManager {
 
 
     /**
-     * 删除某个任务，同步列表，并且删除文件和数据库信息
+     * 删除下载任务列表中某个任务，同步列表，并且删除文件和数据库信息
      */
     fun SynchizeWhenDelete(position: Int) {
         DownloadTaskQueue[position].cancel()
@@ -101,6 +101,19 @@ object DownloadTaskManager {
         }
         DownloadTaskQueue.removeAt(position)
         CusTomTaskQueue.removeAt(position)
+    }
+
+
+    /**
+     *删除已完成中的某个任务
+     */
+    fun SynchizeWhenDeleteCompleted(position: Int) {
+        deleteTaskFromDateBase(DownloadedTaskQueue[position])
+        val tempfile = File(getParentFile(), DownloadedTaskQueue[position].name)
+        if (tempfile.exists()) {
+            tempfile.delete()
+        }
+        DownloadedTaskQueue.removeAt(position)
     }
 
 

@@ -7,8 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import android.view.View
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.MergeAdapter
 import com.liulishuo.okdownload.core.cause.EndCause
+import com.sunexample.downloaddemo.adapter.CompletedTaskAdapter
 import com.sunexample.downloaddemo.adapter.TaskAdapter
+import com.sunexample.downloaddemo.adapter.TitleAdapter
 import com.sunexample.downloaddemo.eventbus.TaskEndEvent
 import com.sunexample.downloaddemo.eventbus.TaskProgressEvent
 import com.sunexample.downloaddemo.eventbus.TaskStartEvent
@@ -20,6 +25,8 @@ import org.greenrobot.eventbus.ThreadMode
 class TaskListActivity : AppCompatActivity() {
 
     private var adapter: TaskAdapter? = null
+    private var completedadapter: CompletedTaskAdapter? = null
+    private var mergeAdapter: MergeAdapter? = null
 
     //判断是否启动了service
     private var isServiceRunning = false
@@ -28,9 +35,14 @@ class TaskListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task_list)
         EventBus.getDefault().register(this);
+
+        adapter = TaskAdapter(this, DownloadTaskManager.CusTomTaskQueue)
+        completedadapter = CompletedTaskAdapter(this, DownloadTaskManager.DownloadedTaskQueue)
+
         initRecycle()
+
         isServiceRunning = isServiceRunning(this, TaskService::class.java.name)
-        Log.d(TAG, "isServiceRunning:${isServiceRunning(this, TaskService::class.java.name)}")
+//        Log.d(TAG, "isServiceRunning:${isServiceRunning(this, TaskService::class.java.name)}")
     }
 
 
@@ -40,8 +52,19 @@ class TaskListActivity : AppCompatActivity() {
 
 
     private fun initRecycle() {
-        adapter = TaskAdapter(this, DownloadTaskManager.CusTomTaskQueue)
-        rec_tasklist.adapter = adapter
+        val layoutManager = GridLayoutManager(this, 3)
+        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                if (position == 0 || position == DownloadTaskManager.CusTomTaskQueue.size + 1) {
+                    return 3;
+                } else {
+                    return 1
+                }
+            }
+        }
+        rec_tasklist.layoutManager = layoutManager
+        mergeAdapter = MergeAdapter(TitleAdapter(0), adapter, TitleAdapter(2), completedadapter)
+        rec_tasklist.adapter = mergeAdapter
     }
 
 
@@ -87,6 +110,7 @@ class TaskListActivity : AppCompatActivity() {
             EndCause.COMPLETED -> {
                 //完成任务
                 adapter!!.notifyDataSetChanged()
+                completedadapter!!.notifyDataSetChanged()
             }
             EndCause.CANCELED -> {
                 //取消
