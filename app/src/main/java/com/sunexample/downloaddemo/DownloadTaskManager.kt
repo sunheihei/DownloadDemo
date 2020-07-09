@@ -153,7 +153,7 @@ object DownloadTaskManager {
             put(URL, task.url)
             put(TASKTAG, task.tag)
             put(ISCOMPLETED, task.iscompleted)
-            put(THUMBNAIL, task.url)
+            put(THUMBNAIL, task.Thumbnail)
             put(CURRENTOFFSET, task.currentOffset)
             put(TOTALLENGTH, task.totalLength)
         }
