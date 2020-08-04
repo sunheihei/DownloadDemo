@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         DownloadTaskManager.initManager(this)
 
 
+        //Android Q直接使用了应用沙盒存储
 //        RxPermissions(this).requestEach(
 //            Manifest.permission.READ_EXTERNAL_STORAGE,
 //            Manifest.permission.WRITE_EXTERNAL_STORAGE,
