@@ -42,63 +42,7 @@ class TaskService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
         intent?.let {
-            //新开启一个下载任务
-            if (it.action == Const.TAG_START_NEW_TASK) {
-                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
-                mTask?.let {
-                    val task =
-                        DownloadTask.Builder(it.url, DownloadTaskManager.getParentFile())
-                            .setFilename(it.name)
-                            .setConnectionCount(1)
-                            // the minimal interval millisecond for callback progress
-                            .setMinIntervalMillisCallbackProcess(1000)
-                            // do re-download even if the task has already been completed in the past.
-                            .setPassIfAlreadyCompleted(false)
-                            .setWifiRequired(true)
-                            .build()
-                    task.addTag(TASK_TAG_KEY, it.tag)
-                    //添加一条新任务到下载任务列表
-                    DownloadTaskManager.addTaskToDownloadQueue(task)
-                    task.enqueue(listener);
-                }
-            }
-            //重新启动下载列表中的某个任务
-            if (it.action == Const.TAG_RESTART_TASK) {
-                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
-                DownloadTaskManager.DownloadTaskQueue.forEach {
-                    if (it.getTag(Const.TASK_TAG_KEY).equals(mTask?.tag)) {
-                        it.enqueue(listener)
-                    }
-                }
-            }
-
-            //启动全部任务下载
-            if (it.action == Const.TAG_START_ALL_TASK) {
-                if (DownloadTaskManager.DownloadTaskQueue.size != 0) {
-                    DownloadTaskManager.DownloadTaskQueue.forEach {
-                        it.enqueue(listener)
-                    }
-                }
-            }
-
-            //暂停某个任务
-            if (it.action == Const.TAG_STOP_TASK) {
-                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
-                DownloadTaskManager.DownloadTaskQueue.forEach {
-                    if (it.getTag(Const.TASK_TAG_KEY) == mTask?.tag) {
-                        it.cancel()
-                    }
-                }
-            }
-            //暂定全部任务,并且退出service
-            if (it.action == Const.TAG_STOP_ALL_TASK) {
-                if (DownloadTaskManager.DownloadTaskQueue.size != 0) {
-                    DownloadTaskManager.DownloadTaskQueue.forEach {
-                        it.cancel()
-                    }
-                }
-                stopSelf()
-            }
+            dealAction(it)
         }
         return START_NOT_STICKY
     }
@@ -159,15 +103,15 @@ class TaskService : Service() {
             when (cause) {
                 EndCause.COMPLETED -> {
                     //完成任务,同步数据（删除完成的任务）
-                    DownloadTaskManager.SynchronizeTask(position)
+                    DownloadTaskManager.synchronizeTask(position)
                 }
                 EndCause.CANCELED -> {
                     //取消
-                    DownloadTaskManager.SynchronizeProgrss(position)
+                    DownloadTaskManager.synchronizeProgrss(position)
                 }
                 EndCause.ERROR -> {
                     //网络中断
-                    DownloadTaskManager.SynchronizeProgrss(position)
+                    DownloadTaskManager.synchronizeProgrss(position)
                 }
                 EndCause.SAME_TASK_BUSY -> {
                     //重复任务或者到达同时下载任务上限
@@ -215,7 +159,72 @@ class TaskService : Service() {
 
 
     override fun onBind(intent: Intent): IBinder {
+        Log.d(TAG, "onBind")
+        dealAction(intent)
         return mBinder
+    }
+
+    private fun dealAction(intent: Intent) {
+        intent?.let { it ->
+            //新开启一个下载任务
+            Log.d(TAG, "action:${it.action}")
+            if (it.action == Const.TAG_START_NEW_TASK) {
+                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
+                mTask?.let {
+                    val task =
+                        DownloadTask.Builder(it.url, DownloadTaskManager.getParentFile())
+                            .setFilename(it.name)
+                            .setConnectionCount(1)
+                            .setMinIntervalMillisCallbackProcess(1000)
+                            .setPassIfAlreadyCompleted(false)
+                            .setWifiRequired(true)
+                            .build()
+                    task.addTag(TASK_TAG_KEY, it.tag)
+                    //添加一条新任务到下载任务列表
+                    DownloadTaskManager.addTaskToDownloadQueue(task)
+                    task.enqueue(listener);
+                }
+            }
+            //重新启动下载列表中的某个任务
+            if (it.action == Const.TAG_RESTART_TASK) {
+                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
+                DownloadTaskManager.DownloadTaskQueue.forEach {
+                    if (it.getTag(Const.TASK_TAG_KEY).equals(mTask?.tag)) {
+                        it.enqueue(listener)
+                    }
+                }
+            }
+
+            //启动全部任务下载
+            if (it.action == Const.TAG_START_ALL_TASK) {
+                if (DownloadTaskManager.DownloadTaskQueue.size != 0) {
+                    DownloadTaskManager.DownloadTaskQueue.forEach {
+                        it.enqueue(listener)
+                    }
+                }
+            }
+
+            //暂停某个任务
+            if (it.action == Const.TAG_STOP_TASK) {
+                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
+                DownloadTaskManager.DownloadTaskQueue.forEach {
+                    if (it.getTag(Const.TASK_TAG_KEY) == mTask?.tag) {
+                        it.cancel()
+                    }
+                }
+            }
+            //暂定全部任务,并且退出service
+            if (it.action == Const.TAG_STOP_ALL_TASK) {
+                if (DownloadTaskManager.DownloadTaskQueue.size != 0) {
+                    DownloadTaskManager.DownloadTaskQueue.forEach {
+                        it.cancel()
+                    }
+                }
+                stopSelf()
+            }
+        }
+
+
     }
 
 

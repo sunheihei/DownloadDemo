@@ -30,7 +30,7 @@ class TitleAdapter(var position1: Int) :
 }
 
 
-class TitleViewHolder(itemview: View) : RecyclerView.ViewHolder(itemview) {
+class TitleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     val title: TextView = itemView.findViewById(R.id.title)
 

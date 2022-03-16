@@ -15,7 +15,7 @@ import com.sunexample.downloaddemo.taskbean.Task
 import java.io.File
 
 
-class CompletedTaskAdapter(val mcontext: Context, var data: List<Task>) :
+class CompletedTaskAdapter(private val mContext: Context, var data: List<Task>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return CompletedTaskViewHolder.create(parent)
@@ -29,7 +29,7 @@ class CompletedTaskAdapter(val mcontext: Context, var data: List<Task>) :
         if (holder is CompletedTaskViewHolder) {
             holder.task_name.text = data[position].name
             holder.task_size.text = formatSize(
-                mcontext,
+                mContext,
                 getFileSize(
                     File(
                         DownloadTaskManager.getParentFile(),
@@ -43,15 +43,15 @@ class CompletedTaskAdapter(val mcontext: Context, var data: List<Task>) :
             }
 
             holder.btn_more.setOnClickListener {
-                if (mcontext is Activity) {
-                    val dialog = BottomSheetDialog(mcontext)
+                if (mContext is Activity) {
+                    val dialog = BottomSheetDialog(mContext)
                     val view: View =
-                        mcontext.getLayoutInflater().inflate(R.layout.dialog_bottom_sheet, null)
+                        mContext.layoutInflater.inflate(R.layout.dialog_bottom_sheet, null)
 
                     val delete = view.findViewById(R.id.delete) as TextView
 
                     delete.setOnClickListener {
-                        DownloadTaskManager.SynchizeWhenDeleteCompleted(position)
+                        DownloadTaskManager.synchronizeWhenDeleteCompleted(position)
                         dialog.dismiss()
                         notifyDataSetChanged()
                     }
@@ -65,12 +65,12 @@ class CompletedTaskAdapter(val mcontext: Context, var data: List<Task>) :
 }
 
 
-class CompletedTaskViewHolder(itemview: View) : RecyclerView.ViewHolder(itemview) {
+class CompletedTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     val task_name: TextView = itemView.findViewById(R.id.task_name)
-    val task_size: TextView = itemview.findViewById(R.id.task_size)
-    val task_root: RelativeLayout = itemview.findViewById(R.id.task_root)
-    val btn_more: ImageView = itemview.findViewById(R.id.btn_more)
+    val task_size: TextView = itemView.findViewById(R.id.task_size)
+    val task_root: RelativeLayout = itemView.findViewById(R.id.task_root)
+    val btn_more: ImageView = itemView.findViewById(R.id.btn_more)
 
     companion object {
         fun create(parent: ViewGroup) =

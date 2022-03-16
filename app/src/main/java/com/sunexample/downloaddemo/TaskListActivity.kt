@@ -23,7 +23,6 @@ class TaskListActivity : AppCompatActivity() {
     private var mergeAdapter: ConcatAdapter? = null
 
     //判断是否启动了service
-    private var isServiceRunning = false
 
     lateinit var myBinder: TaskService.MyBinder
 
@@ -31,18 +30,12 @@ class TaskListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task_list)
 
-        isServiceRunning = isServiceRunning(this, TaskService::class.java.name)
-
-
-        adapter = TaskAdapter(this, DownloadTaskManager.CusTomTaskQueue)
-        completedadapter = CompletedTaskAdapter(this, DownloadTaskManager.DownloadedTaskQueue)
 
         initRecycle()
 
-        if (isServiceRunning) {
-            val bindIntent = Intent(this, TaskService::class.java)
-            bindService(bindIntent, conn, BIND_AUTO_CREATE)
-        }
+
+        val bindIntent = Intent(this, TaskService::class.java)
+        bindService(bindIntent, conn, BIND_AUTO_CREATE)
     }
 
 
@@ -100,13 +93,28 @@ class TaskListActivity : AppCompatActivity() {
     }
 
     private fun initRecycle() {
+
+        adapter = TaskAdapter(this, DownloadTaskManager.CusTomTaskQueue)
+
+        adapter!!.setOnItemClick { task, action ->
+            val intent = Intent(
+                this,
+                TaskService::class.java
+            ).setAction(action)
+                .putExtra(Const.TAG_TASK, task)
+            Log.d(TAG, "BIND")
+            bindService(intent, conn, BIND_AUTO_CREATE)
+        }
+
+        completedadapter = CompletedTaskAdapter(this, DownloadTaskManager.DownloadedTaskQueue)
+
         val layoutManager = GridLayoutManager(this, 3)
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
-                if (position == 0 || position == DownloadTaskManager.CusTomTaskQueue.size + 1) {
-                    return 3;
+                return if (position == 0 || position == DownloadTaskManager.CusTomTaskQueue.size + 1) {
+                    3
                 } else {
-                    return 1
+                    1
                 }
             }
         }
@@ -115,10 +123,9 @@ class TaskListActivity : AppCompatActivity() {
         rec_tasklist.adapter = mergeAdapter
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
+        unbindService(conn)
     }
-
 
 }

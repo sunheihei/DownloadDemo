@@ -11,7 +11,7 @@ class TaskDatabaseHelper(val context: Context, name: String, version: Int) :
 
 
 
-    private val createTask = "create table ${TABLENAME} (" +
+    private val createTask = "create table $TABLENAME (" +
             " id integer primary key autoincrement," +
             " ${Const.NAME} text," +
             " ${Const.URL} text," +

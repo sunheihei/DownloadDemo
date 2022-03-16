@@ -52,7 +52,7 @@ fun isServiceRunning(context: Context, className: String): Boolean {
  * @throws Exception 　　
  */
 fun getFileSize(file: File): Long {
-    var size: Long = 0;
+    var size: Long = 0
     if (file.exists()) {
         var fis = FileInputStream(file);
         size = fis.available().toLong();

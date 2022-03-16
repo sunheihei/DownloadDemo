@@ -14,11 +14,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.liulishuo.okdownload.StatusUtil
 import com.sunexample.downloaddemo.*
+import com.sunexample.downloaddemo.eventbus.TaskProgressEvent
 import com.sunexample.downloaddemo.taskbean.Task
 
 
-class TaskAdapter(val mcontext: Context, var data: List<Task>) :
+class TaskAdapter(private val mContext: Context, private var data: List<Task>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    var itemClick: ((task: Task, action: String) -> Unit)? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return TaskViewHolder.create(parent)
     }
@@ -30,8 +34,8 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is TaskViewHolder) {
             holder.task_name.text = data[position].name
-            holder.tv_curoffset.text = formatSize(mcontext, data[position].currentOffset.toString())
-            holder.tv_totallength.text = formatSize(mcontext, data[position].totalLength.toString())
+            holder.tv_curoffset.text = formatSize(mContext, data[position].currentOffset.toString())
+            holder.tv_totallength.text = formatSize(mContext, data[position].totalLength.toString())
 
             val status = StatusUtil.getStatus(DownloadTaskManager.DownloadTaskQueue[position])
 
@@ -57,35 +61,30 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
             holder.task_root.setOnClickListener {
                 if (status == StatusUtil.Status.IDLE || status == StatusUtil.Status.UNKNOWN) {
                     holder.task_status.text = "RUNNING"
-                    mcontext.startService(
-                        Intent(
-                            mcontext,
-                            TaskService::class.java
-                        ).setAction(Const.TAG_RESTART_TASK)
-                            .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
+                    itemClick?.invoke(
+                        DownloadTaskManager.CusTomTaskQueue[position],
+                        Const.TAG_RESTART_TASK
                     )
+
                 } else if (status == StatusUtil.Status.RUNNING || status == StatusUtil.Status.PENDING) {
                     holder.task_status.text = "IDLE"
-                    mcontext.startService(
-                        Intent(
-                            mcontext,
-                            TaskService::class.java
-                        ).setAction(Const.TAG_STOP_TASK)
-                            .putExtra(Const.TAG_TASK, DownloadTaskManager.CusTomTaskQueue[position])
+                    itemClick?.invoke(
+                        DownloadTaskManager.CusTomTaskQueue[position],
+                        Const.TAG_STOP_TASK
                     )
                 }
             }
 
             holder.btn_more.setOnClickListener {
-                if (mcontext is Activity) {
-                    val dialog = BottomSheetDialog(mcontext)
+                if (mContext is Activity) {
+                    val dialog = BottomSheetDialog(mContext)
                     val view: View =
-                        mcontext.getLayoutInflater().inflate(R.layout.dialog_bottom_sheet, null)
+                        mContext.layoutInflater.inflate(R.layout.dialog_bottom_sheet, null)
 
                     val delete = view.findViewById(R.id.delete) as TextView
 
                     delete.setOnClickListener {
-                        DownloadTaskManager.SynchizeWhenDelete(position)
+                        DownloadTaskManager.synchronizeWhenDelete(position)
                         dialog.dismiss()
                         notifyDataSetChanged()
                     }
@@ -97,15 +96,14 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
         }
     }
 
+    class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    class TaskViewHolder(itemview: View) : RecyclerView.ViewHolder(itemview) {
-
-        val task_name: TextView = itemView.findViewById(R.id.task_name)
-        val task_status: TextView = itemView.findViewById(R.id.task_status)
-        val task_root: RelativeLayout = itemview.findViewById(R.id.task_root)
-        val tv_curoffset: TextView = itemview.findViewById(R.id.tv_curoffset)
-        val tv_totallength: TextView = itemview.findViewById(R.id.tv_totallength)
-        val btn_more: ImageView = itemview.findViewById(R.id.btn_more)
+        val task_name: TextView = this.itemView.findViewById(R.id.task_name)
+        val task_status: TextView = this.itemView.findViewById(R.id.task_status)
+        val task_root: RelativeLayout = itemView.findViewById(R.id.task_root)
+        val tv_curoffset: TextView = itemView.findViewById(R.id.tv_curoffset)
+        val tv_totallength: TextView = itemView.findViewById(R.id.tv_totallength)
+        val btn_more: ImageView = itemView.findViewById(R.id.btn_more)
 
         companion object {
             fun create(parent: ViewGroup) =
@@ -116,5 +114,8 @@ class TaskAdapter(val mcontext: Context, var data: List<Task>) :
         }
     }
 
+    fun setOnItemClick(itemClick: (task: Task, action: String) -> Unit) {
+        this.itemClick = itemClick
+    }
 
 }

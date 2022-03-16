@@ -1,5 +1,6 @@
 package com.sunexample.downloaddemo
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -47,7 +48,7 @@ object DownloadTaskManager {
 
 
     //添加一个新任务
-    fun StartNewTask(context: Context, task: Task) {
+    fun startNewTask(context: Context, task: Task) {
         DownloadTaskQueue.forEach {
             if (it.filename == task.name && it.url == task.url) {
                 Log.d(TAG, "The file is already in the download queue")
@@ -69,13 +70,36 @@ object DownloadTaskManager {
     }
 
 
+    fun pauseAllTasks(context: Context) {
+        context.startService(
+            Intent(
+                context,
+                TaskService::class.java
+            ).setAction(Const.TAG_STOP_ALL_TASK)
+        )
+    }
+
+    fun startAllTasks(context: Context) {
+        context.startService(
+            Intent(
+                context,
+                TaskService::class.java
+            ).setAction(Const.TAG_START_ALL_TASK)
+        )
+    }
+
+
+    fun stopDownload(context: Context) {
+        context.stopService(Intent(context, TaskService::class.java))
+    }
+
     /**
      * 当某个任务下载完成时，同步三个队列数据，并更新数据库状态
      */
-    fun SynchronizeTask(position: Int) {
+    fun synchronizeTask(position: Int) {
         //更新该任务状态
         updataTaskStatus(CusTomTaskQueue[position])//更新是否已经下载完成
-        SynchronizeProgrss(position)//下载完的任务将进度更新到表中
+        synchronizeProgrss(position)//下载完的任务将进度更新到表中
         DownloadedTaskQueue.add(CusTomTaskQueue[position])
         DownloadTaskQueue.removeAt(position)
         CusTomTaskQueue.removeAt(position)
@@ -84,7 +108,7 @@ object DownloadTaskManager {
     /**
      * 更新数据库任务进度
      */
-    fun SynchronizeProgrss(position: Int) {
+    fun synchronizeProgrss(position: Int) {
         if (CusTomTaskQueue.size != 0)
             updataProgress(CusTomTaskQueue[position])
     }
@@ -93,7 +117,7 @@ object DownloadTaskManager {
     /**
      * 删除下载任务列表中某个任务，同步列表，并且删除文件和数据库信息
      */
-    fun SynchizeWhenDelete(position: Int) {
+    fun synchronizeWhenDelete(position: Int) {
         DownloadTaskQueue[position].cancel()
         deleteTaskFromDateBase(CusTomTaskQueue[position])
         if (DownloadTaskQueue[position].file!!.exists()) {
@@ -107,11 +131,11 @@ object DownloadTaskManager {
     /**
      *删除已完成中的某个任务
      */
-    fun SynchizeWhenDeleteCompleted(position: Int) {
+    fun synchronizeWhenDeleteCompleted(position: Int) {
         deleteTaskFromDateBase(DownloadedTaskQueue[position])
-        val tempfile = File(getParentFile(), DownloadedTaskQueue[position].name)
-        if (tempfile.exists()) {
-            tempfile.delete()
+        val tempFile = File(getParentFile(), DownloadedTaskQueue[position].name)
+        if (tempFile.exists()) {
+            tempFile.delete()
         }
         DownloadedTaskQueue.removeAt(position)
     }
@@ -152,8 +176,8 @@ object DownloadTaskManager {
             put(NAME, task.name)
             put(URL, task.url)
             put(TASKTAG, task.tag)
-            put(ISCOMPLETED, task.iscompleted)
-            put(THUMBNAIL, task.Thumbnail)
+            put(ISCOMPLETED, task.isCompleted)
+            put(THUMBNAIL, task.thumbnail)
             put(CURRENTOFFSET, task.currentOffset)
             put(TOTALLENGTH, task.totalLength)
         }
@@ -192,16 +216,17 @@ object DownloadTaskManager {
     /**
      * 从数据库查找全部任务，分别放进任务队列
      */
+    @SuppressLint("Range")
     private fun getDataFromDatabase() {
         val cursor = db?.query(TABLENAME, null, null, null, null, null, null)
         if (cursor!!.moveToFirst()) {
             do {
                 val name = cursor.getString(cursor.getColumnIndex(NAME))
                 val url = cursor.getString(cursor.getColumnIndex(URL))
-                val task_tag = cursor.getString(cursor.getColumnIndex(TASKTAG))
-                val iscompleted = cursor.getInt(cursor.getColumnIndex(ISCOMPLETED))
-                val thombnail = cursor.getString(cursor.getColumnIndex(THUMBNAIL))
-                val currentoffset = cursor.getLong(cursor.getColumnIndex(CURRENTOFFSET))
+                val taskTag = cursor.getString(cursor.getColumnIndex(TASKTAG))
+                val isCompleted = cursor.getInt(cursor.getColumnIndex(ISCOMPLETED))
+                val thumbnail = cursor.getString(cursor.getColumnIndex(THUMBNAIL))
+                val currentOffset = cursor.getLong(cursor.getColumnIndex(CURRENTOFFSET))
                 val totalLength = cursor.getLong(cursor.getColumnIndex(TOTALLENGTH))
 
 
@@ -216,14 +241,14 @@ object DownloadTaskManager {
                 val task = Task(
                     name,
                     url,
-                    thombnail,
-                    iscompleted,
-                    task_tag,
-                    currentoffset,
+                    thumbnail,
+                    isCompleted,
+                    taskTag,
+                    currentOffset,
                     totalLength
                 )
 
-                if (iscompleted == 1) {
+                if (isCompleted == 1) {
                     //已经完成
                     if (File(getParentFile(), name).exists()) {
                         //且该文件存在
@@ -233,15 +258,15 @@ object DownloadTaskManager {
                         deleteTaskFromDateBase(task)
                     }
                 } else {
-                    val Donwloadtask = DownloadTask.Builder(url, getParentFile())
+                    val downLoadTask = DownloadTask.Builder(url, getParentFile())
                         .setFilename(name)
                         .setConnectionCount(1)
                         .setMinIntervalMillisCallbackProcess(1000)
                         .setPassIfAlreadyCompleted(false)
                         .build()
-                    Donwloadtask.addTag(TASK_TAG_KEY, task_tag)
+                    downLoadTask.addTag(TASK_TAG_KEY, taskTag)
 
-                    DownloadTaskQueue.add(Donwloadtask)
+                    DownloadTaskQueue.add(downLoadTask)
 
                     CusTomTaskQueue.add(task)
                 }
