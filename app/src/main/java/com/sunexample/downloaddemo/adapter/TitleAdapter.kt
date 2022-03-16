@@ -1,15 +1,11 @@
 package com.sunexample.downloaddemo.adapter
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.sunexample.downloaddemo.*
-import com.sunexample.downloaddemo.TaskBean.Task
 
 
 class TitleAdapter(var position1: Int) :

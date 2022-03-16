@@ -1,7 +1,5 @@
 package com.sunexample.downloaddemo
 
-import com.sunexample.downloaddemo.TaskBean.Task
-
 object Const {
 
     val DBNAME = "Tasks.db"

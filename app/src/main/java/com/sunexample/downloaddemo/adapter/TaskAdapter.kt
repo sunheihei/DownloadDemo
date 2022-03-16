@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.liulishuo.okdownload.StatusUtil
 import com.sunexample.downloaddemo.*
-import com.sunexample.downloaddemo.TaskBean.Task
+import com.sunexample.downloaddemo.taskbean.Task
 
 
 class TaskAdapter(val mcontext: Context, var data: List<Task>) :

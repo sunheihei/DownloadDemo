@@ -3,6 +3,7 @@ package com.sunexample.downloaddemo
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -15,12 +16,11 @@ import com.liulishuo.okdownload.core.listener.DownloadListener1
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist
 import com.sunexample.downloaddemo.Const.TAG_TASK
 import com.sunexample.downloaddemo.Const.TASK_TAG_KEY
-import com.sunexample.downloaddemo.TaskBean.Task
+import com.sunexample.downloaddemo.taskbean.Task
 import com.sunexample.downloaddemo.eventbus.TaskEndEvent
 import com.sunexample.downloaddemo.eventbus.TaskProgressEvent
 import com.sunexample.downloaddemo.eventbus.TaskStartEvent
-import org.greenrobot.eventbus.EventBus
-import java.lang.Exception
+
 
 class TaskService : Service() {
 
@@ -29,6 +29,10 @@ class TaskService : Service() {
     private var manager: NotificationManager? = null
 
     private var downloading_task = 0
+
+    private val mBinder = MyBinder()
+
+
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Service Start")
@@ -40,7 +44,7 @@ class TaskService : Service() {
         intent?.let {
             //新开启一个下载任务
             if (it.action == Const.TAG_START_NEW_TASK) {
-                var mTask: Task = it.getParcelableExtra(TAG_TASK)
+                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
                 mTask?.let {
                     val task =
                         DownloadTask.Builder(it.url, DownloadTaskManager.getParentFile())
@@ -60,9 +64,9 @@ class TaskService : Service() {
             }
             //重新启动下载列表中的某个任务
             if (it.action == Const.TAG_RESTART_TASK) {
-                var mTask: Task = it.getParcelableExtra(TAG_TASK)
+                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
                 DownloadTaskManager.DownloadTaskQueue.forEach {
-                    if (it.getTag(Const.TASK_TAG_KEY).equals(mTask.tag)) {
+                    if (it.getTag(Const.TASK_TAG_KEY).equals(mTask?.tag)) {
                         it.enqueue(listener)
                     }
                 }
@@ -79,9 +83,9 @@ class TaskService : Service() {
 
             //暂停某个任务
             if (it.action == Const.TAG_STOP_TASK) {
-                var mTask: Task = it.getParcelableExtra(TAG_TASK)
+                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
                 DownloadTaskManager.DownloadTaskQueue.forEach {
-                    if (it.getTag(Const.TASK_TAG_KEY) == mTask.tag) {
+                    if (it.getTag(Const.TASK_TAG_KEY) == mTask?.tag) {
                         it.cancel()
                     }
                 }
@@ -132,9 +136,8 @@ class TaskService : Service() {
     val listener = object : DownloadListener1() {
         override fun taskStart(task: DownloadTask, model: Listener1Assist.Listener1Model) {
             Log.d(TAG, "taskStart : ${task.filename}")
-            if (isForeground(this@TaskService, "TaskListActivity")) {
-                EventBus.getDefault().post(TaskStartEvent(task))
-            }
+
+            mBinder.starDownload?.invoke(TaskStartEvent(task))
         }
 
         override fun taskEnd(
@@ -172,10 +175,7 @@ class TaskService : Service() {
             }
 
             //如果下载界面可见，发送消息给界面
-            if (isForeground(this@TaskService, "TaskListActivity")) {
-                EventBus.getDefault().post(TaskEndEvent(task, cause, realCause))
-            }
-
+            mBinder.endDownload?.invoke(TaskEndEvent(task, cause, realCause))
 
             //当任务列表中没有的时候就停止后台任务
             if (DownloadTaskManager.DownloadTaskQueue.size == 0) {
@@ -185,15 +185,13 @@ class TaskService : Service() {
 
         override fun progress(task: DownloadTask, currentOffset: Long, totalLength: Long) {
 //          Log.d(TAG, "progress : ${task.filename} ${currentOffset}")
-            if (isForeground(this@TaskService, "TaskListActivity")) {
-                EventBus.getDefault().post(
-                    TaskProgressEvent(
-                        task,
-                        currentOffset,
-                        totalLength
-                    )
+            mBinder.downloadProgress?.invoke(
+                TaskProgressEvent(
+                    task,
+                    currentOffset,
+                    totalLength
                 )
-            }
+            )
         }
 
         override fun connected(
@@ -208,19 +206,37 @@ class TaskService : Service() {
         override fun retry(task: DownloadTask, cause: ResumeFailedCause) {
             Log.d(TAG, "retry : ${task.filename}")
         }
-
     }
-
-
-    override fun onBind(intent: Intent): IBinder {
-        TODO("Return the communication channel to the service.")
-    }
-
 
     override fun onDestroy() {
         OkDownload.with().downloadDispatcher().cancelAll();
         super.onDestroy()
-        Log.d(TAG, "onDestroy")
     }
+
+
+    override fun onBind(intent: Intent): IBinder {
+        return mBinder
+    }
+
+
+    class MyBinder : Binder() {
+
+        var starDownload: ((start: TaskStartEvent) -> Unit)? = null
+        var endDownload: ((end: TaskEndEvent) -> Unit)? = null
+        var downloadProgress: ((progress: TaskProgressEvent) -> Unit)? = null
+
+        fun setOnStartDownload(start: (start: TaskStartEvent) -> Unit) {
+            this.starDownload = start
+        }
+
+        fun setOnEndDownload(end: (start: TaskEndEvent) -> Unit) {
+            this.endDownload = end
+        }
+
+        fun setOnDownloadProgress(progress: (progress: TaskProgressEvent) -> Unit) {
+            this.downloadProgress = progress
+        }
+    }
+
 
 }

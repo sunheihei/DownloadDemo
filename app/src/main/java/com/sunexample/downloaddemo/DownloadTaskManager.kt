@@ -18,7 +18,7 @@ import com.sunexample.downloaddemo.Const.TASKTAG
 import com.sunexample.downloaddemo.Const.TASK_TAG_KEY
 import com.sunexample.downloaddemo.Const.THUMBNAIL
 import com.sunexample.downloaddemo.Const.TOTALLENGTH
-import com.sunexample.downloaddemo.TaskBean.Task
+import com.sunexample.downloaddemo.taskbean.Task
 import com.sunexample.downloaddemo.sqlite.TaskDatabaseHelper
 import java.io.File
 

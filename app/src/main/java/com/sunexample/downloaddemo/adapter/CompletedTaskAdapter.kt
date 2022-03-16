@@ -1,7 +1,6 @@
 package com.sunexample.downloaddemo.adapter
 
 import android.app.Activity
-import android.app.DownloadManager
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -12,7 +11,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.sunexample.downloaddemo.*
-import com.sunexample.downloaddemo.TaskBean.Task
+import com.sunexample.downloaddemo.taskbean.Task
 import java.io.File
 
 

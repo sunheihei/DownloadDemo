@@ -8,6 +8,7 @@
   <component name="DBNavigator.Project.DataExportManager">
     <export-instructions>
       <create-header value="true" />
+      <friendly-headers value="false" />
       <quote-values-containing-separator value="true" />
       <quote-all-values value="false" />
       <value-separator value="" />
@@ -23,11 +24,7 @@
     <autoscroll-to-editor value="false" />
     <autoscroll-from-editor value="true" />
     <show-object-properties value="true" />
-    <loaded-nodes>
-      <connection connection-id="83bd082a-41ac-4ef2-9f2a-41552547d797">
-        <schema name="main" object-types="column, view, index, table, constraint, dataset trigger" />
-      </connection>
-    </loaded-nodes>
+    <loaded-nodes />
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="83bd082a-41ac-4ef2-9f2a-41552547d797">
@@ -49,6 +46,9 @@
   </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />
+  </component>
+  <component name="DBNavigator.Project.ExecutionManager">
+    <retain-sticky-names value="false" />
   </component>
   <component name="DBNavigator.Project.MethodExecutionManager">
     <method-browser />
@@ -119,6 +119,7 @@
           <restore-workspace value="true" />
           <restore-workspace-deep value="true" />
           <environment-type value="default" />
+          <connectivity-timeout value="5" />
           <idle-time-to-disconnect value="30" />
           <idle-time-to-disconnect-pool value="5" />
           <credential-expiry-time value="10" />
@@ -215,8 +216,6 @@
           <object-type name="TABLE" enabled="true" />
           <object-type name="VIEW" enabled="true" />
           <object-type name="MATERIALIZED VIEW" enabled="true" />
-          <object-type name="NESTED TABLE" enabled="false" />
-          <object-type name="COLUMN" enabled="false" />
           <object-type name="INDEX" enabled="true" />
           <object-type name="CONSTRAINT" enabled="true" />
           <object-type name="DATASET TRIGGER" enabled="true" />
@@ -227,8 +226,6 @@
           <object-type name="FUNCTION" enabled="true" />
           <object-type name="PACKAGE" enabled="true" />
           <object-type name="TYPE" enabled="true" />
-          <object-type name="TYPE ATTRIBUTE" enabled="false" />
-          <object-type name="ARGUMENT" enabled="false" />
           <object-type name="DIMENSION" enabled="false" />
           <object-type name="CLUSTER" enabled="false" />
           <object-type name="DBLINK" enabled="true" />
