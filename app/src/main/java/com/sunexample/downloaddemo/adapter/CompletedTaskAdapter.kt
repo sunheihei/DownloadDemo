@@ -62,22 +62,24 @@ class CompletedTaskAdapter(private val mContext: Context, var data: List<Task>) 
             }
         }
     }
-}
 
+    class CompletedTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-class CompletedTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val task_name: TextView = itemView.findViewById(R.id.task_name)
+        val task_size: TextView = itemView.findViewById(R.id.task_size)
+        val task_root: RelativeLayout = itemView.findViewById(R.id.task_root)
+        val btn_more: ImageView = itemView.findViewById(R.id.btn_more)
 
-    val task_name: TextView = itemView.findViewById(R.id.task_name)
-    val task_size: TextView = itemView.findViewById(R.id.task_size)
-    val task_root: RelativeLayout = itemView.findViewById(R.id.task_root)
-    val btn_more: ImageView = itemView.findViewById(R.id.btn_more)
-
-    companion object {
-        fun create(parent: ViewGroup) =
-            CompletedTaskViewHolder(
-                LayoutInflater.from(parent.context)
-                    .inflate(R.layout.completed_task_item_layout, parent, false)
-            )
+        companion object {
+            fun create(parent: ViewGroup) =
+                CompletedTaskViewHolder(
+                    LayoutInflater.from(parent.context)
+                        .inflate(R.layout.completed_task_item_layout, parent, false)
+                )
+        }
     }
 }
+
+
+
 

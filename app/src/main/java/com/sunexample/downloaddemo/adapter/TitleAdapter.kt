@@ -27,19 +27,21 @@ class TitleAdapter(var position1: Int) :
             }
         }
     }
-}
 
+    class TitleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-class TitleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val title: TextView = itemView.findViewById(R.id.title)
 
-    val title: TextView = itemView.findViewById(R.id.title)
-
-    companion object {
-        fun create(parent: ViewGroup) =
-            TitleViewHolder(
-                LayoutInflater.from(parent.context)
-                    .inflate(R.layout.title_task_item_layout, parent, false)
-            )
+        companion object {
+            fun create(parent: ViewGroup) =
+                TitleViewHolder(
+                    LayoutInflater.from(parent.context)
+                        .inflate(R.layout.title_task_item_layout, parent, false)
+                )
+        }
     }
 }
+
+
+
 
