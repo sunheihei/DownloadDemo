@@ -23,6 +23,7 @@ class TaskListActivity : AppCompatActivity() {
     private var mergeAdapter: ConcatAdapter? = null
 
     //判断是否启动了service
+    private var isServiceRunning = false
 
     lateinit var myBinder: TaskService.MyBinder
 
@@ -33,9 +34,11 @@ class TaskListActivity : AppCompatActivity() {
 
         initRecycle()
 
-
-        val bindIntent = Intent(this, TaskService::class.java)
-        bindService(bindIntent, conn, BIND_AUTO_CREATE)
+        isServiceRunning = isServiceRunning(this, TaskService::class.java.name)
+        if (isServiceRunning) {
+            val bindIntent = Intent(this, TaskService::class.java)
+            bindService(bindIntent, conn, BIND_AUTO_CREATE)
+        }
     }
 
 
@@ -44,10 +47,9 @@ class TaskListActivity : AppCompatActivity() {
             myBinder = service as TaskService.MyBinder
 
             myBinder.setOnStartDownload {
-                Log.d(TAG, "setOnStartDownload")
+
             }
             myBinder.setOnDownloadProgress { taskinfo ->
-                Log.d(TAG, "setOnDownloadProgress")
                 DownloadTaskManager.CusTomTaskQueue.forEach {
                     if (it.name.equals(taskinfo.task.filename)) {
                         it.currentOffset = taskinfo.currentOffset
@@ -59,7 +61,6 @@ class TaskListActivity : AppCompatActivity() {
             }
 
             myBinder.setOnEndDownload { taskend ->
-                Log.d(TAG, "setOnEndDownload")
                 var position = 0
                 DownloadTaskManager.CusTomTaskQueue.forEach {
                     if (it.tag.equals(taskend.task.getTag(Const.TASK_TAG_KEY))) {
@@ -85,7 +86,9 @@ class TaskListActivity : AppCompatActivity() {
                     }
                 }
             }
+            myBinder.setOnConnected {
 
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {

@@ -16,10 +16,11 @@ import com.liulishuo.okdownload.core.listener.DownloadListener1
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist
 import com.sunexample.downloaddemo.Const.TAG_TASK
 import com.sunexample.downloaddemo.Const.TASK_TAG_KEY
+import com.sunexample.downloaddemo.event.TaskConnectedEvent
 import com.sunexample.downloaddemo.taskbean.Task
-import com.sunexample.downloaddemo.eventbus.TaskEndEvent
-import com.sunexample.downloaddemo.eventbus.TaskProgressEvent
-import com.sunexample.downloaddemo.eventbus.TaskStartEvent
+import com.sunexample.downloaddemo.event.TaskEndEvent
+import com.sunexample.downloaddemo.event.TaskProgressEvent
+import com.sunexample.downloaddemo.event.TaskStartEvent
 
 
 class TaskService : Service() {
@@ -233,6 +234,11 @@ class TaskService : Service() {
         var starDownload: ((start: TaskStartEvent) -> Unit)? = null
         var endDownload: ((end: TaskEndEvent) -> Unit)? = null
         var downloadProgress: ((progress: TaskProgressEvent) -> Unit)? = null
+        var downloadConnected: ((connected: TaskConnectedEvent) -> Unit)? = null
+
+        fun setOnConnected(connected: (connected: TaskConnectedEvent) -> Unit) {
+            this.downloadConnected = connected
+        }
 
         fun setOnStartDownload(start: (start: TaskStartEvent) -> Unit) {
             this.starDownload = start
@@ -245,6 +251,7 @@ class TaskService : Service() {
         fun setOnDownloadProgress(progress: (progress: TaskProgressEvent) -> Unit) {
             this.downloadProgress = progress
         }
+
     }
 
 

@@ -1,4 +1,4 @@
-package com.sunexample.downloaddemo.eventbus
+package com.sunexample.downloaddemo.event
 
 import com.liulishuo.okdownload.DownloadTask
 
