@@ -27,6 +27,8 @@ class TaskListActivity : AppCompatActivity() {
 
     lateinit var myBinder: TaskService.MyBinder
 
+    private var isBind = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task_list)
@@ -44,6 +46,7 @@ class TaskListActivity : AppCompatActivity() {
 
     var conn = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            isBind = true
             myBinder = service as TaskService.MyBinder
 
             myBinder.setOnStartDownload {
@@ -92,6 +95,7 @@ class TaskListActivity : AppCompatActivity() {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
+            isBind = false
         }
     }
 
@@ -128,7 +132,8 @@ class TaskListActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(conn)
+        if (isBind)
+            unbindService(conn)
     }
 
 }
