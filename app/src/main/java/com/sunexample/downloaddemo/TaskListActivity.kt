@@ -104,13 +104,18 @@ class TaskListActivity : AppCompatActivity() {
         adapter = TaskAdapter(this, DownloadTaskManager.CusTomTaskQueue)
 
         adapter!!.setOnItemClick { task, action ->
-            val intent = Intent(
-                this,
-                TaskService::class.java
-            ).setAction(action)
-                .putExtra(Const.TAG_TASK, task)
-            Log.d(TAG, "BIND")
-            bindService(intent, conn, BIND_AUTO_CREATE)
+            if (::myBinder.isInitialized) {
+                if (myBinder.isBinderAlive) {
+                    myBinder.controlTask(task, action)
+                }
+            } else {
+                val intent = Intent(
+                    this,
+                    TaskService::class.java
+                ).setAction(action)
+                    .putExtra(Const.TAG_TASK, task)
+                bindService(intent, conn, BIND_AUTO_CREATE)
+            }
         }
 
         completedadapter = CompletedTaskAdapter(this, DownloadTaskManager.DownloadedTaskQueue)

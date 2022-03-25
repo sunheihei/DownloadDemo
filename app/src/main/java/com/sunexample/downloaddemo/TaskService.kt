@@ -229,7 +229,26 @@ class TaskService : Service() {
     }
 
 
-    class MyBinder : Binder() {
+    inner class MyBinder : Binder() {
+
+        fun controlTask(task: Task, action: String) {
+            //暂停某个任务
+            if (action == Const.TAG_STOP_TASK) {
+                DownloadTaskManager.DownloadTaskQueue.forEach {
+                    if (it.getTag(Const.TASK_TAG_KEY) == task.tag) {
+                        it.cancel()
+                    }
+                }
+            }
+            //重新启动下载列表中的某个任务
+            if (action == Const.TAG_RESTART_TASK) {
+                DownloadTaskManager.DownloadTaskQueue.forEach {
+                    if (it.getTag(Const.TASK_TAG_KEY).equals(task.tag)) {
+                        it.enqueue(listener)
+                    }
+                }
+            }
+        }
 
         var starDownload: ((start: TaskStartEvent) -> Unit)? = null
         var endDownload: ((end: TaskEndEvent) -> Unit)? = null
