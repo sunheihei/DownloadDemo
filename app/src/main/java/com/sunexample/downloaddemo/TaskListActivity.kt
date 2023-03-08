@@ -1,5 +1,6 @@
 package com.sunexample.downloaddemo
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -45,6 +46,7 @@ class TaskListActivity : AppCompatActivity() {
 
 
     var conn = object : ServiceConnection {
+        @SuppressLint("NotifyDataSetChanged")
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             isBind = true
             myBinder = service as TaskService.MyBinder

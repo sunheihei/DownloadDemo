@@ -31,6 +31,9 @@
       <console name="Connection" type="STANDARD" schema="main" session="Main" />
     </connection>
   </component>
+  <component name="DBNavigator.Project.DatabaseEditorStateManager">
+    <last-used-providers />
+  </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files />
   </component>
@@ -70,7 +73,7 @@
   </component>
   <component name="DBNavigator.Project.Settings">
     <connections>
-      <connection id="83bd082a-41ac-4ef2-9f2a-41552547d797" active="true">
+      <connection id="83bd082a-41ac-4ef2-9f2a-41552547d797" active="true" signed="true">
         <database>
           <name value="Connection" />
           <description value="" />
@@ -127,7 +130,7 @@
           <alternative-statement-delimiter value="" />
         </details>
         <object-filters hide-empty-schemas="false" hide-pseudo-columns="false">
-          <object-type-filter use-master-settings="true">
+          <object-type-filter>
             <object-type name="SCHEMA" enabled="true" />
             <object-type name="USER" enabled="true" />
             <object-type name="ROLE" enabled="true" />
@@ -198,6 +201,7 @@
         <object-type name="FUNCTION" sorting-type="NAME" />
         <object-type name="PROCEDURE" sorting-type="NAME" />
         <object-type name="ARGUMENT" sorting-type="POSITION" />
+        <object-type name="TYPE ATTRIBUTE" sorting-type="POSITION" />
       </sorting>
       <default-editors>
         <object-type name="VIEW" editor-type="SELECTION" />
@@ -244,11 +248,11 @@
         <nulls-first value="true" />
         <max-sorting-columns value="4" />
       </sorting>
-      <tracking-columns>
-        <columnNames value="" />
+      <audit-columns>
+        <column-names value="" />
         <visible value="true" />
         <editable value="false" />
-      </tracking-columns>
+      </audit-columns>
     </dataset-grid-settings>
     <dataset-editor-settings>
       <text-editor-popup>

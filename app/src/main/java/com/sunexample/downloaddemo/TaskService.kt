@@ -65,7 +65,12 @@ class TaskService : Service() {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pendingIntent =
-            PendingIntent.getActivity(applicationContext, 0, intent, 0)
+            PendingIntent.getActivity(
+                applicationContext,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
 
         notification = NotificationCompat.Builder(this, "downloading")
             .setContentTitle("DownloadDemo")
@@ -166,11 +171,11 @@ class TaskService : Service() {
     }
 
     private fun dealAction(intent: Intent) {
-        intent?.let { it ->
+        intent.let { it ->
             //新开启一个下载任务
             Log.d(TAG, "action:${it.action}")
             if (it.action == Const.TAG_START_NEW_TASK) {
-                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
+                val mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
                 mTask?.let {
                     val task =
                         DownloadTask.Builder(it.url, DownloadTaskManager.getParentFile())
@@ -188,7 +193,7 @@ class TaskService : Service() {
             }
             //重新启动下载列表中的某个任务
             if (it.action == Const.TAG_RESTART_TASK) {
-                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
+                val mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
                 DownloadTaskManager.DownloadTaskQueue.forEach {
                     if (it.getTag(Const.TASK_TAG_KEY).equals(mTask?.tag)) {
                         it.enqueue(listener)
@@ -207,7 +212,7 @@ class TaskService : Service() {
 
             //暂停某个任务
             if (it.action == Const.TAG_STOP_TASK) {
-                var mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
+                val mTask: Task? = it.getSerializableExtra(TAG_TASK) as Task?
                 DownloadTaskManager.DownloadTaskQueue.forEach {
                     if (it.getTag(Const.TASK_TAG_KEY) == mTask?.tag) {
                         it.cancel()
